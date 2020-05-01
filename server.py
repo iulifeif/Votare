@@ -86,6 +86,8 @@ def vote(vote_id):
 
 def check_time():
     global current_vote
+    if "expiry_date" not in current_vote:
+        return
     if time.time() >= current_vote["expiry_date"]:
         last_vote = current_vote
         current_vote = {}
