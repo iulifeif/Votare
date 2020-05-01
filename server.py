@@ -85,6 +85,10 @@ def vote(vote_id):
                 print(current_vote["votes"][vote_id] + "  " + answer)
                 if not current_vote["vote_ids"]:
                     end_vote()
+            else:
+                return "Nice try! You voted already!", HTTPStatus.BAD_REQUEST
+        else:
+            return "Lasa magariile coae!", HTTPStatus.BAD_REQUEST
         return "Bv coae", HTTPStatus.CREATED
 
 
