@@ -14,7 +14,7 @@ server_mail = os.environ.get("server_mail", "")
 def send_mail_list(mail_message_dict):
     try:
         with smtplib.SMTP(server_smtp, port_smtp) as server:
-            server.set_debuglevel(1)
+            # server.set_debuglevel(1)
             server.ehlo()
             server.starttls()
             server.ehlo()
@@ -24,8 +24,8 @@ def send_mail_list(mail_message_dict):
                 mime_content = MIMEMultipart()
                 mime_content['From'] = server_mail
                 mime_content['To'] = email
-                mime_content['Subject'] = "Test Subject"
-                mime_content.attach(MIMEText(body, 'plain'))
+                mime_content['Subject'] = "Votare ASII"
+                mime_content.attach(MIMEText(body, 'html'))
                 message = mime_content.as_string()
                 try:
                     server.sendmail(server_mail, email, message)

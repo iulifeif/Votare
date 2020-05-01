@@ -5,6 +5,15 @@
     <title>Vote</title>
 </head>
 <body>
-
+    <form method="POST">
+        <img src="https://i.imgur.com/prazkER.png" height="100px">
+        <h2>{{title}}</h2><br>
+        <h4>{{question}}</h4> <p>Expires at: {{expire}}</p>
+        {% for answer in answers %}
+            <input type="radio" name="answer" id="{{answer}}">
+            <label for="{{answer}}">"{{answer}}"</label><br>
+        {% endfor %}
+        <button type="submit">Great!</button>
+    </form>
 </body>
 </html>

@@ -1,6 +1,11 @@
+import datetime
 import os
 import uuid
 import time
+
+import tzlocal as tzlocal
+from apscheduler.schedulers.background import BackgroundScheduler
+
 import mailer
 from flask_cors import CORS
 from http import HTTPStatus
@@ -19,47 +24,52 @@ def generate_url():
     return external_url + "/vote/" + current_id
 
 
-@app.route("/start_vote", methods=["POST"])
+@app.route("/start_vote", methods=["POST", "GET"])
 def start_vote():
-    if not request.is_json:
-        return jsonify({"err": "Not a json request."}), HTTPStatus.BAD_REQUEST
-    password = request.json.get("password")
-    if not password or admin_password != password:
-        return jsonify({"err": "No password/wrong password"}), HTTPStatus.FORBIDDEN
-    mail_list = request.json.get("emails")
-    if not mail_list:
-        return jsonify({"err": "No mail list"}), HTTPStatus.BAD_REQUEST
-    title = request.json.get("title")
-    expiry_date = request.json.get("expiry_date", time.time()+10*60)
-    if expiry_date <= time.time():
-        return jsonify({"err": "Expiry date must be in the future"}), HTTPStatus.BAD_REQUEST
-    question = request.json.get("question")
-    answers = request.json.get("answers")
-    if not question or not answers or type(answers) is not list:
-        return jsonify({"err": "Missing question or answers"}), HTTPStatus.BAD_REQUEST
-    global current_vote
-    current_vote = {
-        "title": title,
-        "create_date": time.time(),
-        "expiry_date": expiry_date,
-        "question": question,
-        "answers": answers,
-        "vote_ids": [],
-        "votes": {}
-    }
-    mail_codes_dict = {mail: generate_url() for mail in mail_list}
-    mailer.send_mail_list(mail_codes_dict)
-    return jsonify({}), HTTPStatus.CREATED
+    if request.method == "POST":
+        password = request.form.get("password")
+        if not password or admin_password != password:
+            return jsonify({"err": "No password/wrong password"}), HTTPStatus.FORBIDDEN
+        mail_list = request.form.get("emails", "").split(",")
+        if not mail_list:
+            return jsonify({"err": "No mail list"}), HTTPStatus.BAD_REQUEST
+        title = request.form.get("title")
+        expiry_date = time.time()+60*int(request.form.get("duration", 10))
+        if expiry_date <= time.time():
+            return jsonify({"err": "Expiry date must be in the future"}), HTTPStatus.BAD_REQUEST
+        question = request.form.get("question")
+        answers = request.form.get("answers", "").split(",")
+        if not question or not answers:
+            return jsonify({"err": "Missing question or answers"}), HTTPStatus.BAD_REQUEST
+        global current_vote
+        current_vote = {
+            "title": title,
+            "create_date": time.time(),
+            "expiry_date": expiry_date,
+            "question": question,
+            "answers": answers,
+            "vote_ids": [],
+            "votes": {},
+            "mail_list": mail_list
+        }
+        mail_codes_dict = {mail: generate_url() for mail in mail_list}
+        mailer.send_mail_list(mail_codes_dict)
+        return jsonify({}), HTTPStatus.CREATED
+    else:
+        return render_template("start_vote.html")
 
 
 @app.route("/vote/<vote_id>", methods=["GET", "POST"])
 def vote(vote_id):
     if request.method == "GET":
+        ts = current_vote["expiry_date"]
+        local_timezone = tzlocal.get_localzone()
+        date = datetime.datetime.fromtimestamp(ts, local_timezone).strftime("%Y-%m-%d %H:%M:%S")
         return render_template("vote.html",
                                question=current_vote["question"],
                                answers=current_vote["answers"],
                                title=current_vote["title"],
-                               expire=current_vote["expiry_date"])
+                               expire=date)
     else:
         answer = request.form.get("answer")
         if answer in current_vote["answers"]:
@@ -69,5 +79,30 @@ def vote(vote_id):
         return jsonify({}), HTTPStatus.CREATED
 
 
+def check_time():
+    global current_vote
+    if time.time() >= current_vote["expiry_date"]:
+        last_vote = current_vote
+        current_vote = {}
+        total_votes = len(last_vote["vote_ids"]) + len(last_vote["votes"])
+        discarded_votes = len(last_vote["vote_ids"])
+        percent_voted = (total_votes - discarded_votes) / total_votes * 100
+        votes = {answer: 0 for answer in last_vote["answers"]}
+        for vote_id in last_vote["votes"]:
+            vote_answer = last_vote["votes"][vote_id]
+            votes[vote_answer] += 1
+        mail_body = "Total votes: {}\nDiscarded votes: {}\nPercent voted: {}%".format(
+            total_votes, discarded_votes, percent_voted
+        )
+        for answer in votes:
+            answer_votes = votes[answer]
+            mail_body += "\nVotes for {}: {}".format(answer, answer_votes)
+        mail_list = last_vote["mail_list"] + [mailer.server_mail]
+        mailer.send_mail_list({mail: mail_body for mail in mail_list})
+
+
 if __name__ == '__main__':
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(check_time, "interval", seconds=10)
+    scheduler.start()
     app.run("0.0.0.0", 5000)
