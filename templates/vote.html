@@ -10,8 +10,8 @@
         <h2>{{title}}</h2><br>
         <h4>{{question}}</h4> <p>Expires at: {{expire}}</p>
         {% for answer in answers %}
-            <input type="radio" name="answer" id="{{answer}}">
-            <label for="{{answer}}">"{{answer}}"</label><br>
+            <input type="radio" name="answer" id="{{answer}}" value="{{answer}}">
+            <label for="{{answer}}">{{answer}}</label><br>
         {% endfor %}
         <button type="submit">Great!</button>
     </form>

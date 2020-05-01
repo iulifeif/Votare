@@ -21,7 +21,7 @@ CORS(app)
 def generate_url():
     current_id = str(uuid.uuid4())
     current_vote["vote_ids"].append(current_id)
-    return external_url + "/vote/" + current_id
+    return "<a href='{}'>Vote here!</a>".format(external_url + "/vote/" + current_id)
 
 
 @app.route("/", methods=["GET"])
@@ -59,7 +59,7 @@ def start_vote():
         }
         mail_codes_dict = {mail: generate_url() for mail in mail_list}
         mailer.send_mail_list(mail_codes_dict)
-        return jsonify({}), HTTPStatus.CREATED
+        return "Bun, bravo", HTTPStatus.CREATED
     else:
         return render_template("start_vote.html")
 
@@ -77,35 +77,43 @@ def vote(vote_id):
                                expire=date)
     else:
         answer = request.form.get("answer")
+        print(answer)
         if answer in current_vote["answers"]:
             if vote_id in current_vote["vote_ids"]:
                 current_vote["vote_ids"].remove(vote_id)
                 current_vote["votes"][vote_id] = answer
-        return jsonify({}), HTTPStatus.CREATED
+                print(current_vote["votes"][vote_id] + "  " + answer)
+                if not current_vote["vote_ids"]:
+                    end_vote()
+        return "Bv coae", HTTPStatus.CREATED
+
+
+def end_vote():
+    global current_vote
+    last_vote = current_vote
+    current_vote = {}
+    total_votes = len(last_vote["vote_ids"]) + len(last_vote["votes"])
+    discarded_votes = len(last_vote["vote_ids"])
+    percent_voted = (total_votes - discarded_votes) / total_votes * 100
+    votes = {answer: 0 for answer in last_vote["answers"]}
+    for vote_id in last_vote["votes"]:
+        vote_answer = last_vote["votes"][vote_id]
+        votes[vote_answer] += 1
+    mail_body = "Total votes: {}<br>Discarded votes: {}<br>Percent voted: {}%".format(
+        total_votes, discarded_votes, percent_voted
+    )
+    for answer in votes:
+        answer_votes = votes[answer]
+        mail_body += "<br>Votes for {}: {}".format(answer, answer_votes)
+    mail_list = last_vote["mail_list"] + [mailer.server_mail]
+    mailer.send_mail_list({mail: mail_body for mail in mail_list})
 
 
 def check_time():
-    global current_vote
     if "expiry_date" not in current_vote:
         return
     if time.time() >= current_vote["expiry_date"]:
-        last_vote = current_vote
-        current_vote = {}
-        total_votes = len(last_vote["vote_ids"]) + len(last_vote["votes"])
-        discarded_votes = len(last_vote["vote_ids"])
-        percent_voted = (total_votes - discarded_votes) / total_votes * 100
-        votes = {answer: 0 for answer in last_vote["answers"]}
-        for vote_id in last_vote["votes"]:
-            vote_answer = last_vote["votes"][vote_id]
-            votes[vote_answer] += 1
-        mail_body = "Total votes: {}\nDiscarded votes: {}\nPercent voted: {}%".format(
-            total_votes, discarded_votes, percent_voted
-        )
-        for answer in votes:
-            answer_votes = votes[answer]
-            mail_body += "\nVotes for {}: {}".format(answer, answer_votes)
-        mail_list = last_vote["mail_list"] + [mailer.server_mail]
-        mailer.send_mail_list({mail: mail_body for mail in mail_list})
+        end_vote()
 
 
 if __name__ == '__main__':

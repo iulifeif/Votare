@@ -20,7 +20,7 @@ def send_mail_list(mail_message_dict):
             server.ehlo()
             server.login(server_mail, password_smtp)
             for email in mail_message_dict:
-                body = "<a href='{}'>Vote here!</a>".format(mail_message_dict[email])
+                body = mail_message_dict[email]
                 mime_content = MIMEMultipart()
                 mime_content['From'] = server_mail
                 mime_content['To'] = email
