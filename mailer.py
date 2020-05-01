@@ -2,6 +2,8 @@ import smtplib
 import ssl
 import traceback
 import os
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 server_smtp = os.environ.get("server_smtp", "smtp.zoho.com")
 port_smtp = int(os.environ.get("port_smtp", 587))
@@ -11,8 +13,6 @@ server_mail = os.environ.get("server_mail", "")
 
 def send_mail_list(mail_message_dict):
     try:
-        # Create a secure SSL context
-        context = ssl.create_default_context()
         with smtplib.SMTP(server_smtp, port_smtp) as server:
             server.set_debuglevel(1)
             server.ehlo()
@@ -20,9 +20,15 @@ def send_mail_list(mail_message_dict):
             server.ehlo()
             server.login(server_mail, password_smtp)
             for email in mail_message_dict:
-                message = mail_message_dict[email]
+                body = "<a href='{}'>Vote here!</a>".format(mail_message_dict[email])
+                mime_content = MIMEMultipart()
+                mime_content['From'] = server_mail
+                mime_content['To'] = email
+                mime_content['Subject'] = "Test Subject"
+                mime_content.attach(MIMEText(body, 'plain'))
+                message = mime_content.as_string()
                 try:
-                    server.sendmail(from_addr=server_mail, to_addrs=[email], msg=message)
+                    server.sendmail(server_mail, email, message)
                 except Exception:
                     print(traceback.format_exc())
     except Exception:
