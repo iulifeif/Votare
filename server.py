@@ -99,12 +99,12 @@ def end_vote():
     for vote_id in last_vote["votes"]:
         vote_answer = last_vote["votes"][vote_id]
         votes[vote_answer] += 1
-    mail_body = "Total votes: {}<br>Discarded votes: {}<br>Percent voted: {}%".format(
+    mail_body = "Total votes: {}\n<br>Discarded votes: {}\n<br>Percent voted: {}%".format(
         total_votes, discarded_votes, percent_voted
     )
     for answer in votes:
         answer_votes = votes[answer]
-        mail_body += "<br>Votes for {}: {}".format(answer, answer_votes)
+        mail_body += "\n<br>Votes for {}: {}".format(answer, answer_votes)
     mail_list = last_vote["mail_list"] + [mailer.server_mail]
     mailer.send_mail_list({mail: mail_body for mail in mail_list})
 
