@@ -9,7 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import mailer
 from flask_cors import CORS
 from http import HTTPStatus
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect
 
 external_url = os.environ.get("external_url")
 admin_password = os.environ.get("admin_password")
@@ -22,6 +22,11 @@ def generate_url():
     current_id = str(uuid.uuid4())
     current_vote["vote_ids"].append(current_id)
     return external_url + "/vote/" + current_id
+
+
+@app.route("/", methods=["GET"])
+def default():
+    return redirect("/start_vote")
 
 
 @app.route("/start_vote", methods=["POST", "GET"])
