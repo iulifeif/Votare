@@ -59,7 +59,7 @@ def start_vote():
         }
         mail_codes_dict = {mail: generate_url() for mail in mail_list}
         mailer.send_mail_list(mail_codes_dict)
-        return "Bun, bravo", HTTPStatus.CREATED
+        return "Sesiune de votare creata cu succes!", HTTPStatus.CREATED
     else:
         return render_template("start_vote.html")
 
@@ -88,8 +88,8 @@ def vote(vote_id):
             else:
                 return "Nice try! You voted already!", HTTPStatus.BAD_REQUEST
         else:
-            return "Lasa magariile coae!", HTTPStatus.BAD_REQUEST
-        return "Bv coae", HTTPStatus.CREATED
+            return "Lasa magariile!", HTTPStatus.BAD_REQUEST
+        return "Votul tau a fost inregistrat!", HTTPStatus.CREATED
 
 
 def end_vote():

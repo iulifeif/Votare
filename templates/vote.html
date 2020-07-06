@@ -2,16 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vote</title>
+    <style>
+* {
+  box-sizing: border-box;
+}
+body{
+    display: flex;
+    justify-content: space-around;
+    width:100%;
+}
+.elements{
+    /*width: 300px;*/
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background-color: white;
+    color: black;
+    box-shadow: 1px 1px 2px grey, 0 0 25px grey, 0 0 5px grey;
+    border: none;
+    border-radius: 10px;
+}
+img{
+    width:200px;
+}
+button[type="submit"]{
+    width: 100px;
+    height: 30px;
+    border: none;
+    border-radius: 10px;
+    background-color: red;
+    color: white;
+    font-size:15px;
+    margin-top: 15px;
+}
+.title{
+    font-size: 18px;
+    padding-top: 10px;
+}
+.time{
+    font-size:14px;
+}
+.question{
+    font-size: 22px;
+    padding: 15px;
+}
+    </style>
 </head>
 <body>
-    <form method="POST">
+    <form method="POST" class="elements">
         <img src="https://i.imgur.com/prazkER.png" height="100px">
-        <h2>{{title}}</h2><br>
-        <h4>{{question}}</h4> <p>Expires at: {{expire}}</p>
+        <div class="title">{{title}}</div>
+        <div class="time">Expires at: {{expire}}</div>
+        <div class="question">{{question}}</div>
         {% for answer in answers %}
+        <div>
             <input type="radio" name="answer" id="{{answer}}" value="{{answer}}">
-            <label for="{{answer}}">{{answer}}</label><br>
+            <label for="{{answer}}" class="checkmark">{{answer}}</label><br>
+        </div>
         {% endfor %}
         <button type="submit">Great!</button>
     </form>

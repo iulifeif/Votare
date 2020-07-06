@@ -2,10 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Start vote</title>
+    <style>
+* {
+  box-sizing: border-box;
+}
+body{
+    display: flex;
+    justify-content: space-around;
+    width:100%;
+}
+.elements{
+    /*width: 300px;*/
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background-color: white;
+    color: black;
+    box-shadow: 1px 1px 2px grey, 0 0 25px grey, 0 0 5px grey;
+    border: none;
+    border-radius: 10px;
+}
+img{
+    width:200px;
+}
+input[type="password"], input[type="text"], input[type="number"]{
+    width: 250px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(176,176,176);
+    font-size: 13px;
+    padding: 5px;
+}
+button[type="submit"]{
+    width: 100px;
+    height: 30px;
+    border: none;
+    border-radius: 10px;
+    background-color: red;
+    color: white;
+    font-size:15px;
+}
+    </style>
 </head>
 <body>
-    <form method="POST">
+    <form method="POST" class="elements">
         <img src="https://i.imgur.com/prazkER.png" height="100px">
         <input type="password" name="password" placeholder="Password" required><br><br>
         <input type="text" name="emails" placeholder="Email1,Email2 ..." required><br><br>
