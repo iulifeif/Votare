@@ -67,6 +67,8 @@ def start_vote():
 @app.route("/vote/<vote_id>", methods=["GET", "POST"])
 def vote(vote_id):
     if request.method == "GET":
+        if not current_vote:
+            return "Vote has ended!", HTTPStatus.BAD_REQUEST
         ts = current_vote["expiry_date"]
         local_timezone = tzlocal.get_localzone()
         date = datetime.datetime.fromtimestamp(ts, local_timezone).strftime("%Y-%m-%d %H:%M:%S")
@@ -96,8 +98,11 @@ def end_vote():
     global current_vote
     last_vote = current_vote
     current_vote = {}
+    # total persoane care trebuie sa voteze
     total_votes = len(last_vote["vote_ids"]) + len(last_vote["votes"])
+    # numar persoane care nu au votat
     discarded_votes = len(last_vote["vote_ids"])
+    # procentaj cati oameni au votat
     percent_voted = (total_votes - discarded_votes) / total_votes * 100
     votes = {answer: 0 for answer in last_vote["answers"]}
     for vote_id in last_vote["votes"]:
@@ -109,7 +114,17 @@ def end_vote():
     for answer in votes:
         answer_votes = votes[answer]
         mail_body += "\n<br>Votes for {}: {}".format(answer, answer_votes)
-    mail_list = last_vote["mail_list"] + [mailer.server_mail]
+    # mail_list = last_vote["mail_list"] + [mailer.server_mail]
+    mail_list = ["claudiu.stoian29.12@gmail.com",
+                 "stroiuionut@gmail.com",
+                 "andreea.munteanu05@gmail.com",
+                 "stefan.tomsa99@gmail.com",
+                 "mistrate06@gmail.com",
+                 "iulifeif@gmail.com",
+                 "cristian.rosu453@gmail.com",
+                 "mititelucristina29@gmail.com",
+                 "a.toderica.2013@gmail.com",
+                 mailer.server_mail]
     mailer.send_mail_list({mail: mail_body for mail in mail_list})
 
 
